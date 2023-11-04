@@ -4,6 +4,7 @@ import  Router  from 'express'
 import dotenv from 'dotenv'
 
 import connectDb from './config/connectDb.js'
+import userRoutes from './routes/userRoutes.js'
 
 
 dotenv.config()
@@ -14,6 +15,7 @@ const app=express()
 app.use(cors())
 connectDb(DATABASE_URL)
 app.use(express.json())
+app.use('/api/account',userRoutes)
 
 
 

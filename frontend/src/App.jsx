@@ -14,7 +14,7 @@ function App() {
       <Route path='/' element={<Home/>}>
         <Route path='/chat' element={<Home/>}/>
       </Route>
-      <Route path='/auth' element={<LoginSignup/>}/>
+      <Route path='/auth' element={localStorage.getItem("authToken")?<Home/>:<LoginSignup/>}/>
     </Routes>
     </BrowserRouter>
 

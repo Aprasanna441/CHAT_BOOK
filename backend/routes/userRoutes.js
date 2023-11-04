@@ -1,10 +1,28 @@
-import express from 'express'
+import express from "express";
+import { userSignup,userLogin,changePassword,resetPassword,sendResetEmail,getUserInfo } from "../controller/userController.js";
+import {checkToken} from "../Middlewares/userMiddleware.js"
+
 const router=express.Router()
 
-// Middlewares
-router.get('/',)
 
-//protected routes
+// /middleware
+router.post('/changePassword',checkToken)
+router.get('/getUserInfo',checkToken)
 
 
-//public routes
+// Public route
+router.post('/signup',userSignup)
+router.post('/login',userLogin)
+router.post('/sendresetemail',sendResetEmail)
+router.post('/resetpassword/:id/:token',resetPassword)
+
+// protected route
+router.post('/changePassword',changePassword)
+router.get('/getUserInfo',getUserInfo)
+
+
+
+
+
+export  default router
+

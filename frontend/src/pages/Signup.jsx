@@ -1,147 +1,140 @@
-import React from "react";
-import { useState } from "react";
-import { Box, Checkbox, FormControlLabel } from "@mui/material";
-import { TextField, Button } from "@mui/material";
-import isEmail from "validator/lib/isEmail";
-import isStrongPassword from "validator/lib/isStrongPassword";
+import React, { useState } from "react";
+import styled from "styled-components";
 import { NavLink } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import  {storeToken} from "../services/localStorage"
+
 const Signup = () => {
-  const navigate = useNavigate();
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [confirm_passwordError, setConfirmPasswordError] = useState("");
-  const [nameError, setNameError] = useState("");
-  const [serverError,setServerError]=useState('')
+  const navigate=useNavigate()
+  const [data, setData] = useState({
+    email: "",
+    name: "",
+    password: "",
+    confirm_password: "",
+  });
+  const [error, setError] = useState("");
 
-  const submitHandler = async (e) => {
+  const handleChange = (e) => {
     e.preventDefault();
-
-    const data = new FormData(e.currentTarget);
-
-    const actualData = {
-      name:data.get("fullname"),
-      location:data.get("location"),
-      email: data.get("email"),
-      password: data.get("password"),
-      confirm_password: data.get("confirm_password"),
-      
-    };
-    actualData.name===""?setNameError("Enter Name"):setNameError("")
-    isEmail(actualData.email)
-      ? setEmailError("")
-      : setEmailError("Enter a proper Email");
-    isStrongPassword(actualData.password, { minLength: 8 })
-      ? setPasswordError("")
-      : setPasswordError("Enter a  min 8 digit alphanumeric password");
-    isStrongPassword(actualData.confirm_password, { minLength: 8 })
-      ? setPasswordError("")
-      : setConfirmPasswordError("Enter a  min 8 digit alphanumeric password");
-    actualData.confirm_password!==passwordError? setPasswordError("")
-    : setConfirmPasswordError("Confirm Password Please");
-
-    if (! (emailError && nameError && passwordError && confirm_passwordError)){
-     const res= await fetch("http://localhost:8080/api/account/signup",{
-     method:"POST",
-     headers: {
-      "Content-Type": "application/json",
-    },
-     body:JSON.stringify(actualData)
-    }
-     )
-
-     const result = await res.json();
-    if (result.status==="Success"){
-      storeToken(result.token)
+    setError('')
+    // console.log(e)
+    setData({ ...data, [e.target.name]: e.target.value });
+  };
+  const handleSubmit = async  (e) => {
+    e.preventDefault();
+    if (validateData()){
+      const {name,email,password,confirm_password}=data
+      const res=await fetch('http://localhost:8080/api/account/signup',{
+      method:"POST",
+      body:JSON.stringify({name:name,email:email,password:password,confirm_password:confirm_password}),
+      headers:{
+        'Content-Type':'Application/json',
+        
+      }
+      })
+      const result=await res.json()
+     if(result.status==="Success"){
+      localStorage.setItem("authToken",result.token)
       navigate('/')
+     }
+     else{
+      setError("Refresh Page or try later")
+     }
     }
     else{
-      setServerError(result.message)
-    }
+      console.log("invalid")
     }
   };
+
+  const validateData = () => {
+   
+    const { name, email, password, confirm_password } = data;
+    if (name && email && password && confirm_password) {
+     if(password !=confirm_password){
+setError("Pw and confirm pw didnt match")
+return false
+     }
+     else{
+return true
+     }
+
+      
+    } else {
+   setError("Every field is required")
+   return false
+    }
+  };
+
   return (
     <>
-      <h1 style={{ textAlign: "center" }}>Signup</h1>
-      <Box
-        component="form"
-        sx={{ textAlign: "center" }}
-        noValidate
-        autoComplete="off"
-        style={{ marginTop: "24px" }}
-        onSubmit={submitHandler}
-      >
-        <p style={{color:"red",fontWeight:'bolder'}}>{nameError}</p>
-        <TextField
-          id="standard-basic"
-          label="Full Name"
-          variant="standard"
-          required
-          
-        
-          name="fullname"
-        />{" "}
-        <br />
-        
-        <TextField
-          id="standard-basic"
-          label="Location"
-          variant="standard"
-          required
-          name="location"
-        />{" "}
-        <br />
-        <p style={{color:"red",fontWeight:'bolder'}}>{emailError}</p>
-        <TextField
-          id="standard-basic"
-          label="Email"
-          variant="standard"
-       
-          required
-          
-          name="email"
-        />{" "}
-        <br />
-        <p style={{color:"red",fontWeight:'bolder'}}>{passwordError}</p>
-        <TextField
-          id="standard-basic"
-          label="Password"
-          variant="standard"
-          required
-         
-          full
-          name="password"
-        />{" "}
-        <br />
-        <p style={{color:"red",fontWeight:'bolder'}}>{confirm_passwordError}</p>
-        <TextField
-          id="standard-basic"
-          label="Confirm Password"
-          variant="standard"
-          required
-        
-          full
-          name="confirm_password"
-        />{" "}
-        <br />
-        <FormControlLabel
-          control={<Checkbox />}
-          label="I agree  all the"
-          name="tc"
-          required
-          
-          onChange={() => {}}
-        />{" "}
-        <NavLink to="/">Terms and Conditions</NavLink> <br />
-        <Button variant="contained" sx={{ mt: 5 }} type="submit">
-          Signup
-        </Button>
-        <p style={{color:'red',fontWeight:'bolder'}}>{serverError}</p>
-        
-      </Box>
+      <FormWrapper>
+        <h1 style={{color:'red' ,fontWeight:'bolder'}}>{error}</h1>
+        <form action="" onSubmit={(e) => handleSubmit(e)}>
+          <input
+            type="text"
+            placeholder="Name"
+            name="name"
+            onChange={(e) => handleChange(e)}
+          />
+          <input
+            type="text"
+            placeholder="Email"
+            name="email"
+            onChange={(e) => handleChange(e)}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            name="password"
+            onChange={(e) => handleChange(e)}
+          />
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            name="confirm_password"
+            onChange={(e) => handleChange(e)}
+          />
+          <button type="submit">Signup</button>
+        </form>
+      </FormWrapper>
+      <ToastContainer />
     </>
   );
 };
+const FormWrapper = styled.div`
+  max-height: 100vh;
+  max-width: 100vw;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  background-color: wheat;
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    border-radius: 2rem;
+    padding: 1rem 5rem;
+    input {
+      background-color: transparent;
+      padding: 0.5rem;
+      border: 0.1rem solid green;
+      border-radius: 0.4rem;
+      color: black;
+      width: 100%;
+    }
+  }
+  button {
+    border-radius: 2rem;
+    background-color: #55c2da;
+    padding: 5px;
+  }
+  button:hover {
+    color: white;
+    background-color: red;
+  }
+`;
 
 export default Signup;
